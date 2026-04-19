@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SFE VAR Challenge | Smart Countdown</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: #001019;
+            font-family: 'Orbitron', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* الصورة العلوية - بدون أي مسافات */
+        .header-area {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+            line-height: 0;          /* إزالة أي فراغات ناتجة عن line-height */
+            position: relative;
+            z-index: 10;
+        }
+
+        .top-image {
+            max-width: 500px;
+            width: 90%;
+            height: auto;
+            display: block;
+            margin: 0;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+        }
+
+        /* الصور الجانبية */
+        .side-logo {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 25;
+            width: auto;
+            max-width: 38vw;
+            max-height: 90vh;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .side-logo img {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+            display: block;
+            background: none !important;
+            backdrop-filter: none !important;
+            filter: none !important;
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            outline: none !important;
+        }
+
+        .side-left {
+            left: 20px;
+            justify-content: flex-start;
+        }
+
+        .side-right {
+            right: 20px;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 1200px) {
+            .side-logo { max-width: 35vw; }
+        }
+        @media (max-width: 800px) {
+            .side-logo { max-width: 30vw; }
+        }
+        @media (max-width: 650px) {
+            .side-logo { max-width: 25vw; }
+        }
+        @media (max-width: 550px) {
+            .side-logo { display: none; }
+        }
+
+        /* المحتوى الرئيسي - إزالة أي مسافات علوية */
+        .main-challenge {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* الدائرة - نستخدم margin-top سالب لسحبها لأعلى */
+        .timer-circle {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, #0D2F3F, #051218);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: -25px auto 0 auto;   /* قيمة سالبة لتقليص المسافة بشدة */
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5), 0 0 25px #4EBEFE, inset 0 0 18px rgba(255,215,0,0.3);
+            transition: all 0.2s ease;
+            border: 3px solid rgba(255, 200, 70, 0.8);
+        }
+
+        .timer-digits {
+            font-size: 6rem;
+            font-weight: 900;
+            font-family: 'Orbitron', monospace;
+            color: #F5F5F5;
+            text-shadow: 0 0 15px cyan, 0 0 6px #FFD700;
+            letter-spacing: 6px;
+            transition: all 0.2s;
+        }
+
+        .timer-circle.critical {
+            background: radial-gradient(circle, #D32F2F, #8B0000);
+            box-shadow: 0 0 60px rgba(255, 0, 0, 0.9), inset 0 0 25px #FF8A8A;
+            border-color: #FF6666;
+            animation: pulseRed 0.6s infinite alternate;
+        }
+
+        .timer-circle.critical .timer-digits {
+            color: #FFF;
+            text-shadow: 0 0 20px #FF0000, 0 0 10px #FFAA00;
+            animation: shake 0.2s infinite;
+        }
+
+        @keyframes pulseRed {
+            0% { transform: scale(1); box-shadow: 0 0 25px rgba(255, 0, 0, 0.6); }
+            100% { transform: scale(1.02); box-shadow: 0 0 70px rgba(255, 50, 0, 1); }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(0px, 0px); }
+            25% { transform: translate(1px, -1px);}
+            75% { transform: translate(-1px, 1px);}
+            100% { transform: translate(0,0);}
+        }
+
+        .time-selector {
+            margin-top: 8px;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        .time-dropdown {
+            background: rgba(10, 20, 40, 0.7);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            border-radius: 40px;
+            padding: 5px 12px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #FFE6A3;
+            cursor: pointer;
+            outline: none;
+            transition: 0.2s;
+            text-align: center;
+            width: 100px;
+            letter-spacing: 1px;
+        }
+
+        .time-dropdown option {
+            background: #0a1222;
+            color: #ffd966;
+        }
+
+        .time-dropdown:hover {
+            border-color: #FFD966;
+            box-shadow: 0 0 8px gold;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            z-index: 20;
+        }
+
+        .ctrl-btn {
+            background: #0f1a2f;
+            border: none;
+            font-family: 'Orbitron', monospace;
+            font-weight: bold;
+            font-size: 1.3rem;
+            padding: 10px 32px;
+            border-radius: 60px;
+            color: #FFD966;
+            cursor: pointer;
+            transition: 0.25s;
+            letter-spacing: 2px;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 0 6px rgba(255,215,0,0.5);
+            border: 1px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .ctrl-btn:hover {
+            background: #FFD966;
+            color: #0a0f1f;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #ffd966;
+        }
+
+        .ctrl-btn:active {
+            transform: scale(0.97);
+        }
+
+        @media (max-width: 550px) {
+            .timer-circle {
+                width: 250px;
+                height: 250px;
+                margin-top: -20px;
+            }
+            .timer-digits {
+                font-size: 4.2rem;
+                letter-spacing: 4px;
+            }
+            .ctrl-btn {
+                font-size: 1rem;
+                padding: 8px 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header-area">
+    <img class="top-image" 
+         src="Footballl.png" 
+         alt="SFE VAR Stadium"
+         style="max-width: 500px;"
+    >
+</div>
+
+<div class="side-logo side-left">
+    <img src="Football.png" alt="SFE Logo Left">
+</div>
+<div class="side-logo side-right">
+    <img src="Football.png" alt="VAR Logo Right">
+</div>
+
+<div class="main-challenge">
+    <div class="timer-circle" id="timerCircle">
+        <div class="timer-digits" id="timerDisplay">60</div>
+    </div>
+
+    <div class="time-selector">
+        <select id="timeDropdown" class="time-dropdown">
+            <option value="15">15 sec</option>
+            <option value="30">30 sec</option>
+            <option value="60" selected>60 sec</option>
+             <option value="120">120 sec</option>
+
+        </select>
+    </div>
+
+    <div class="button-group">
+        <button class="ctrl-btn" id="toggleBtn">START</button>
+        <button class="ctrl-btn" id="resetBtn">RESTART</button>
+    </div>
+</div>
+
+<script>
+    const timerDisplayElem = document.getElementById('timerDisplay');
+    const timerCircle = document.getElementById('timerCircle');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const timeDropdown = document.getElementById('timeDropdown');
+
+    let currentSeconds = 60;
+    let countdownInterval = null;
+    let isRunning = false;
+
+    function updateTimerVisuals() {
+        if (currentSeconds <= 0) {
+            timerDisplayElem.textContent = "TIME!";
+        } else {
+            timerDisplayElem.textContent = currentSeconds;
+        }
+        if (currentSeconds <= 5 && currentSeconds > 0) {
+            timerCircle.classList.add('critical');
+        } else {
+            timerCircle.classList.remove('critical');
+        }
+    }
+
+    function applySelectedTime() {
+        const selectedVal = parseInt(timeDropdown.value, 10);
+        if (!isNaN(selectedVal) && selectedVal > 0) {
+            currentSeconds = selectedVal;
+        } else {
+            currentSeconds = 120;
+            timeDropdown.value = "120";
+        }
+        updateTimerVisuals();
+        timerCircle.classList.remove('critical');
+    }
+
+    function startCountdown() {
+        if (currentSeconds <= 0) return false;
+        if (countdownInterval) clearInterval(countdownInterval);
+        isRunning = true;
+        toggleBtn.textContent = "STOP";
+        countdownInterval = setInterval(() => {
+            if (!isRunning) {
+                if (countdownInterval) clearInterval(countdownInterval);
+                return;
+            }
+            if (currentSeconds <= 1) {
+                currentSeconds = 0;
+                updateTimerVisuals();
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+                isRunning = false;
+                toggleBtn.textContent = "START";
+                timerCircle.classList.remove('critical');
+            } else {
+                currentSeconds--;
+                updateTimerVisuals();
+            }
+        }, 1000);
+        return true;
+    }
+    
+    function pauseCountdown() {
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+        isRunning = false;
+        toggleBtn.textContent = "START";
+    }
+    
+    function onToggle() {
+        if (currentSeconds <= 0) {
+            applySelectedTime();
+            if (currentSeconds > 0) startCountdown();
+            return;
+        }
+        if (isRunning) pauseCountdown();
+        else startCountdown();
+    }
+    
+    function onReset() {
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+        isRunning = false;
+        const newTime = parseInt(timeDropdown.value, 10);
+        currentSeconds = (isNaN(newTime) || newTime <= 0) ? 60 : newTime;
+        updateTimerVisuals();
+        toggleBtn.textContent = "START";
+        timerCircle.classList.remove('critical');
+    }
+    
+    function onDropdownChange() {
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+        isRunning = false;
+        const selectedVal = parseInt(timeDropdown.value, 10);
+        currentSeconds = (isNaN(selectedVal) || selectedVal <= 0) ? 60 : selectedVal;
+        updateTimerVisuals();
+        toggleBtn.textContent = "START";
+        timerCircle.classList.remove('critical');
+    }
+    
+    toggleBtn.addEventListener('click', onToggle);
+    resetBtn.addEventListener('click', onReset);
+    timeDropdown.addEventListener('change', onDropdownChange);
+    
+    const initTime = parseInt(timeDropdown.value, 10);
+    currentSeconds = (initTime && initTime > 0) ? initTime : 60;
+    updateTimerVisuals();
+    isRunning = false;
+    toggleBtn.textContent = "START";
+    
+    window.addEventListener('beforeunload', () => {
+        if (countdownInterval) clearInterval(countdownInterval);
+    });
+</script>
+</body>
+</html>
